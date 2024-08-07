@@ -74,7 +74,7 @@ class _HomeState extends State<Home> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            PlayVideo(urlLink: currentVideo.videoPath),
+                            PlayVideo(urlLink: currentVideo.videoPath, index: index, playList: videoList,),
                       ),
                     ),
                     title: Text(

@@ -2,18 +2,25 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_vlc_player/flutter_vlc_player.dart';
-import 'package:yvideo/Layout/play_list.dart';
+import 'package:list_all_videos/thumbnail/ThumbnailTile.dart';
 
 class PlayVideo extends StatefulWidget {
-  const PlayVideo({super.key, required this.urlLink});
+  const PlayVideo(
+      {super.key,
+      required this.urlLink,
+      required this.index,
+      required this.playList});
   final String urlLink;
-
+  final List playList;
+  final int index;
   @override
   // ignore: library_private_types_in_public_api
   _PlayVideoState createState() => _PlayVideoState();
 }
 
 class _PlayVideoState extends State<PlayVideo> {
+  final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
+
   late VlcPlayerController _videoPlayerController;
   late Duration _videoDuration = Duration.zero;
   late Duration _videoPosition = Duration.zero;
@@ -21,20 +28,14 @@ class _PlayVideoState extends State<PlayVideo> {
   bool isLoading = true;
   bool _isFullScreen = false;
   double _opacity = 0.0;
-  late String urlLink = '';
+  late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
-    setState(() {
-      urlLink = widget.urlLink;
-    });
-    intialize();
-  }
-
-  Future<void> intialize() async {
+    _currentIndex = widget.index;
     _videoPlayerController = VlcPlayerController.file(
-      File("/$urlLink"),
+      File("/${widget.urlLink}"),
       autoPlay: true,
       options: VlcPlayerOptions(),
     )
@@ -112,11 +113,9 @@ class _PlayVideoState extends State<PlayVideo> {
     return "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
 
-  void _changeUrl(String url) async {
-    await _videoPlayerController.stop();
-    setState(() {
-      urlLink = url;
-    });
+  Future<void> _changeUrl(String url) async {
+    await _videoPlayerController.setMediaFromFile(File("/$url"));
+    await _videoPlayerController.play();
   }
 
   @override
@@ -126,6 +125,7 @@ class _PlayVideoState extends State<PlayVideo> {
     return Scaffold(
       appBar: !_isFullScreen
           ? AppBar(
+              automaticallyImplyLeading: false,
               title: const Text('Y Video'),
               backgroundColor: Colors.amber,
             )
@@ -177,13 +177,13 @@ class _PlayVideoState extends State<PlayVideo> {
                   ),
                   AnimatedOpacity(
                     opacity: _isFullScreen ? _opacity : 1.0,
-                    duration: const Duration(seconds: 3),
+                    duration: const Duration(seconds: 1),
                     child: Positioned(
                       bottom: _isFullScreen ? 10 : 0,
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         width: size.width,
-                        color: const Color.fromARGB(92, 0, 0, 0),
+                        color: const Color.fromARGB(146, 0, 0, 0),
                         child: Column(
                           children: [
                             Container(
@@ -270,13 +270,77 @@ class _PlayVideoState extends State<PlayVideo> {
                   ),
                 ],
               ),
-              Container(
-                color: Colors.white,
-                width: size.width,
-                height: size.height * 0.4,
-                child: PlayList(
-                  play: _changeUrl,
+              if (!_isFullScreen)
+                Container(
+                  color: Colors.black38,
+                  margin: const EdgeInsets.only(top: 2),
+                  width: size.width,
+                  height: size.height * 0.1,
+                  padding: const EdgeInsets.symmetric(horizontal: 5),
+                  child: Text(
+                    widget.playList[_currentIndex].videoName,
+                    maxLines: 2,
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis),
+                  ),
                 ),
+              Container(
+                color: Colors.black26,
+                margin: const EdgeInsets.symmetric(vertical: 3),
+                width: size.width,
+                height: size.height * 0.3,
+                padding: const EdgeInsets.all(5),
+                child: AnimatedList(
+                    key: _listKey,
+                    physics: const BouncingScrollPhysics(),
+                    initialItemCount: widget.playList.length,
+                    itemBuilder: (context, index, animation) {
+                      final currentVideo = widget.playList[index];
+                      return ListTile(
+                        hoverColor: Colors.black54,
+                        focusColor: Colors.blueGrey,
+                        splashColor: Colors.lightBlue,
+                        tileColor: _currentIndex == index
+                            ? Colors.black26
+                            : Colors.white,
+                        onTap: () => {
+                          if (_currentIndex != index)
+                            {
+                              setState(() {
+                                _currentIndex = index;
+                              }),
+                              _changeUrl(currentVideo.videoPath)
+                            }
+                        },
+                        title: Text(
+                          currentVideo.videoName,
+                          maxLines: 1,
+                          style: const TextStyle(
+                              fontSize: 18, overflow: TextOverflow.ellipsis),
+                        ),
+                        leading:
+                            Stack(alignment: Alignment.bottomRight, children: [
+                          ThumbnailTile(
+                            thumbnailController:
+                                currentVideo.thumbnailController,
+                          ),
+                          if (index == _currentIndex)
+                            Container(
+                              color: Colors.black54,
+                              padding: const EdgeInsets.only(left: 5),
+                              child: const Text(
+                                "Now Playing...",
+                                style: TextStyle(color: Colors.green),
+                              ),
+                            )
+                        ]),
+                        subtitle: Text(
+                          "size: ${currentVideo.videoSize}",
+                        ),
+                      );
+                    }),
               )
             ],
           ),

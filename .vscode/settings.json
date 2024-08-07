@@ -1,0 +1,9 @@
+{
+    "emulator.emulatorPathWindows": "C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator",
+    "emulator.emulatorPath": "C:\\Users\\user\\AppData\\Local\\Android\\Sdk\\emulator",
+    "emulator.androidColdBoot": false,
+    "emulator.androidExtraBootArgs": "",
+    "emulator.simulatorPath": "",
+  "editor.fontFamily": "'Fira Code', Consolas, 'Courier New', monospace",
+  "editor.fontLigatures": true
+}

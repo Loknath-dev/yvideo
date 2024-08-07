@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:yvideo/Layout/play_video.dart';
 
 class VideoPreview extends StatefulWidget {
   const VideoPreview(
@@ -22,12 +21,7 @@ class _VideoPreviewState extends State<VideoPreview> {
     final size = MediaQuery.of(context).size;
     return GestureDetector(
       onTap: () async {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => PlayVideo(urlLink: widget.url),
-          ),
-        );
+       
       },
       child: Container(
         margin: const EdgeInsets.all(5),
